@@ -1,4 +1,4 @@
 [submodule "realworld"]
 	path = realworld
-    url = https://github.com/realworld-apps/realworld.git
+    url = https://github.com/vsavchyn/realworld.git
     ignore = dirty

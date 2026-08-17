@@ -121,14 +121,21 @@ export class ArticleListComponent implements OnChanges {
     this.articlesService
       .query(this.query)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(data => {
-        this.loading.set(LoadingState.LOADED);
-        this.results.set(data.articles);
+      .subscribe({
+        next: data => {
+          this.loading.set(LoadingState.LOADED);
+          this.results.set(data.articles);
 
-        // Used from http://www.jstips.co/en/create-range-0...n-easily-using-one-line/
-        this.totalPages.set(
-          Array.from(new Array(Math.ceil(data.articlesCount / this.limit)), (val, index) => index + 1),
-        );
+          // Used from http://www.jstips.co/en/create-range-0...n-easily-using-one-line/
+          this.totalPages.set(
+            Array.from(new Array(Math.ceil(data.articlesCount / this.limit)), (val, index) => index + 1),
+          );
+        },
+        error: () => {
+          this.loading.set(LoadingState.LOADED);
+          this.results.set([]);
+          this.totalPages.set([]);
+        },
       });
   }
 }
