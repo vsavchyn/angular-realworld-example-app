@@ -2,8 +2,8 @@ import { defineConfig } from '@playwright/test';
 import { baseConfig } from './realworld/specs/e2e/playwright.base';
 
 /**
- * Angular-specific Playwright configuration.
- * Extends the shared RealWorld base config with the Angular dev server.
+ * React-specific Playwright configuration.
+ * Extends the shared RealWorld base config with the Vite dev server on port 4200.
  */
 export default defineConfig({
   ...baseConfig,
@@ -12,10 +12,15 @@ export default defineConfig({
   use: {
     ...baseConfig.use,
     baseURL: 'http://localhost:4200',
+    channel: 'chrome',
+    launchOptions: {
+      executablePath: '/usr/bin/google-chrome',
+      slowMo: 500,
+    },
   },
 
   webServer: {
-    command: 'npm run start',
+    command: 'bun run start',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

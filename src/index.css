@@ -1,0 +1,5 @@
+.nav-link,
+.tag-pill,
+.page-link {
+  cursor: pointer;
+}
