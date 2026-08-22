@@ -15,12 +15,12 @@ export function queryArticles(config: ArticleListConfig): Promise<{ articles: Ar
 }
 
 export async function getArticle(slug: string): Promise<Article> {
-  const data = await apiFetch<{ article: Article }>(`/articles/${slug}`);
+  const data = await apiFetch<{ article: Article }>(`/articles/${encodeURIComponent(slug)}`);
   return data.article;
 }
 
 export function deleteArticle(slug: string): Promise<void> {
-  return apiFetch<void>(`/articles/${slug}`, { method: 'DELETE' });
+  return apiFetch<void>(`/articles/${encodeURIComponent(slug)}`, { method: 'DELETE' });
 }
 
 export async function createArticle(article: Partial<Article>): Promise<Article> {
@@ -32,7 +32,7 @@ export async function createArticle(article: Partial<Article>): Promise<Article>
 }
 
 export async function updateArticle(article: Partial<Article>): Promise<Article> {
-  const data = await apiFetch<{ article: Article }>(`/articles/${article.slug}`, {
+  const data = await apiFetch<{ article: Article }>(`/articles/${encodeURIComponent(article.slug ?? '')}`, {
     method: 'PUT',
     body: JSON.stringify({ article }),
   });
@@ -40,7 +40,7 @@ export async function updateArticle(article: Partial<Article>): Promise<Article>
 }
 
 export async function favoriteArticle(slug: string): Promise<Article> {
-  const data = await apiFetch<{ article: Article }>(`/articles/${slug}/favorite`, {
+  const data = await apiFetch<{ article: Article }>(`/articles/${encodeURIComponent(slug)}/favorite`, {
     method: 'POST',
     body: JSON.stringify({}),
   });
@@ -48,5 +48,5 @@ export async function favoriteArticle(slug: string): Promise<Article> {
 }
 
 export function unfavoriteArticle(slug: string): Promise<void> {
-  return apiFetch<void>(`/articles/${slug}/favorite`, { method: 'DELETE' });
+  return apiFetch<void>(`/articles/${encodeURIComponent(slug)}/favorite`, { method: 'DELETE' });
 }

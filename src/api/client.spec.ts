@@ -28,6 +28,12 @@ describe('apiFetch', () => {
     expect(fetchMock).toHaveBeenCalledWith(`${API_BASE}/tags`, expect.any(Object));
   });
 
+  it('omits credentials on cross-origin requests', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ tags: [] }));
+    await apiFetch('/tags');
+    expect(fetchMock.mock.calls[0][1].credentials).toBe('omit');
+  });
+
   it('attaches the JWT token when present', async () => {
     window.localStorage['jwtToken'] = 'abc';
     fetchMock.mockResolvedValue(jsonResponse({ user: {} }));

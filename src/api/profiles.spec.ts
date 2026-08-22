@@ -38,6 +38,12 @@ describe('profiles api', () => {
     expect((profile as unknown as { profile?: unknown }).profile).toBeUndefined();
   });
 
+  it('encodes username path segments', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ profile: mockProfile }));
+    await getProfile('../articles');
+    expect(fetchMock.mock.calls[0][0]).toBe(`${API_BASE}/profiles/${encodeURIComponent('../articles')}`);
+  });
+
   it('follows with POST and empty JSON body', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ profile: { ...mockProfile, following: true } }));
     const profile = await followUser('testuser');

@@ -80,6 +80,12 @@ describe('articles api', () => {
     await expect(getArticle('test-article')).resolves.toEqual(mockArticle);
   });
 
+  it('encodes slug path segments', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ article: mockArticle }));
+    await getArticle('a/b?x=1');
+    expect(fetchMock.mock.calls[0][0]).toBe(`${API_BASE}/articles/${encodeURIComponent('a/b?x=1')}`);
+  });
+
   it('unwraps article from create/update/favorite responses', async () => {
     fetchMock.mockImplementation(() => Promise.resolve(jsonResponse({ article: mockArticle })));
     await expect(createArticle({ title: 'New' })).resolves.toEqual(mockArticle);

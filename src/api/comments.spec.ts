@@ -57,6 +57,14 @@ describe('comments api', () => {
     expect(fetchMock.mock.calls[0][1].method).toBe('DELETE');
   });
 
+  it('encodes slug and comment id path segments', async () => {
+    fetchMock.mockResolvedValue(new Response('', { status: 200 }));
+    await deleteComment('1/2', 'a/b');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `${API_BASE}/articles/${encodeURIComponent('a/b')}/comments/${encodeURIComponent('1/2')}`,
+    );
+  });
+
   it('surfaces HTTP errors', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ errors: { comment: ['not found'] } }, 404));
     await expect(getComments('missing')).rejects.toMatchObject({ status: 404 });

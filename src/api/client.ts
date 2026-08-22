@@ -56,7 +56,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 
   let response: Response;
   try {
-    response = await fetch(`${API_BASE}${path}`, { ...init, headers });
+    response = await fetch(`${API_BASE}${path}`, { ...init, headers, credentials: 'omit' });
   } catch {
     throw { ...NETWORK_ERROR };
   }
