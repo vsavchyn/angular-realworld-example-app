@@ -1,6 +1,6 @@
 import { getToken } from '../auth/jwt';
 
-export const API_BASE = 'https://api.realworld.show/api';
+export const API_BASE = import.meta.env.VITE_API_BASE ?? 'https://api.realworld.show/api';
 
 export interface ApiError {
   errors: { [key: string]: string | string[] };

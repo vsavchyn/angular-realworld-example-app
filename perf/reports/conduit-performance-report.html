@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Conduit performance report — 25 Aug 2026</title>
+    <style>
+      :root {
+        --bg: #f4f6f4;
+        --card: #ffffff;
+        --ink: #1b2420;
+        --muted: #5d6b66;
+        --line: #d9e0dc;
+        --pass: #1f7a4d;
+        --pass-bg: #e5f6ec;
+        --fail: #b42318;
+        --fail-bg: #fde8e6;
+        --accent: #0f766e;
+        --accent-2: #c2410c;
+        --accent-3: #1d4ed8;
+        --warn: #9a6700;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--bg);
+        font:
+          16px/1.5 'Source Sans 3',
+          'Segoe UI',
+          sans-serif;
+      }
+      header {
+        background: linear-gradient(120deg, #11332e 0%, #0f766e 55%, #1d4ed8 140%);
+        color: #fff;
+        padding: 2.4rem 1.5rem 2rem;
+      }
+      header .wrap,
+      main,
+      footer {
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.4rem;
+        font-size: 2rem;
+        letter-spacing: -0.03em;
+      }
+      .sub {
+        opacity: 0.9;
+        max-width: 46rem;
+      }
+      .status-row {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        margin-top: 1.1rem;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 999px;
+        padding: 0.15rem 0.65rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .pill.pass {
+        background: var(--pass-bg);
+        color: var(--pass);
+      }
+      .pill.fail {
+        background: var(--fail-bg);
+        color: var(--fail);
+      }
+      .pill.neutral {
+        background: #e8eefc;
+        color: #1e3a8a;
+      }
+      .hero-pass,
+      .hero-fail {
+        font-weight: 800;
+        padding: 0.35rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.95rem;
+      }
+      .hero-pass {
+        background: #d9f5e5;
+        color: #14532d;
+      }
+      .hero-fail {
+        background: #fee4e2;
+        color: #7f1d1d;
+      }
+      main {
+        padding: 1.5rem;
+        display: grid;
+        gap: 1.1rem;
+      }
+      section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1.2rem 1.3rem 1.3rem;
+      }
+      h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1.25rem;
+        letter-spacing: -0.02em;
+      }
+      h3 {
+        margin: 1rem 0 0.4rem;
+        font-size: 1.02rem;
+      }
+      p,
+      li {
+        color: var(--ink);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+      }
+      @media (max-width: 800px) {
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .stat {
+        background: #f7faf8;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.8rem 0.9rem;
+      }
+      .stat b {
+        display: block;
+        font-size: 1.25rem;
+        letter-spacing: -0.03em;
+      }
+      .stat span {
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.45rem 0.4rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .chart {
+        width: 100%;
+        height: auto;
+        background: #fbfcfb;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .axis {
+        font-size: 10px;
+        fill: #6b776f;
+      }
+      .bars {
+        display: grid;
+        gap: 0.55rem;
+      }
+      .bar-row {
+        display: grid;
+        grid-template-columns: 5.5rem 1fr 11rem;
+        gap: 0.55rem;
+        align-items: center;
+        font-size: 0.85rem;
+      }
+      .bar-track {
+        height: 10px;
+        background: #e7eee9;
+        border-radius: 99px;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        border-radius: 99px;
+      }
+      .bar-value {
+        color: var(--muted);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .donut-wrap {
+        display: flex;
+        gap: 1.2rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .donut {
+        width: 140px;
+        height: 140px;
+      }
+      .legend {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 0.9rem;
+      }
+      .legend li {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin: 0.2rem 0;
+      }
+      .swatch {
+        width: 0.75rem;
+        height: 0.75rem;
+        border-radius: 2px;
+        display: inline-block;
+      }
+      .callout {
+        background: #fff7e6;
+        border-left: 4px solid var(--warn);
+        padding: 0.7rem 0.9rem;
+        border-radius: 0 8px 8px 0;
+        color: #5c4a12;
+      }
+      .arch {
+        width: 100%;
+        height: auto;
+      }
+      footer {
+        padding: 1rem 1.5rem 2.5rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      ol.findings > li,
+      ol.conclusions > li {
+        margin: 0.45rem 0;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.86em;
+        background: #eef2ef;
+        padding: 0.05rem 0.3rem;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <div class="status-row">
+          <span class="hero-pass">All local performance checks passed</span>
+        </div>
+        <h1>Conduit performance report</h1>
+        <p class="sub">
+          Local lab run on 25 Aug 2026 against a production Vite preview and the Bun RealWorld mock. Frontend Web
+          Vitals, JS bundle budget, k6 smoke (1 VU / 30s) and k6 load (10 VUs / ~2 min).
+        </p>
+        <div class="status-row">
+          <span class="pill pass">PASS</span> Web Vitals <span class="pill pass">PASS</span> Bundle budget
+          <span class="pill pass">PASS</span> k6 smoke <span class="pill pass">PASS</span> k6 load
+          <span class="pill pass">PASS</span> Playwright lab
+        </div>
+      </div>
+    </header>
+    <main>
+      <section>
+        <h2>1. Executive summary</h2>
+        <div class="grid-3">
+          <div class="stat"><span>Home LCP (median of 3)</span><b>300 ms</b></div>
+          <div class="stat"><span>k6 load p95 latency</span><b>418 µs</b></div>
+          <div class="stat"><span>Main JS chunk</span><b>452.2 kB</b></div>
+        </div>
+        <p>
+          The SPA meets Google “good” lab budgets with large headroom on this machine. Protocol load against the
+          in-process mock is essentially instantaneous (p95 well under 1 ms) with <strong>0% HTTP failures</strong>.
+          That is expected: the mock is a Bun <code>serve</code> loop on localhost, not a networked RealWorld backend.
+        </p>
+        <p class="callout">
+          <strong>Read this result as a frontend + fixture baseline</strong>, not as API capacity of
+          <code>api.realworld.show</code> (which was not targeted) and not as production-backend SLO evidence.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. How the run was shaped</h2>
+        <svg class="arch" viewBox="0 0 980 220" role="img" aria-label="Performance test topology">
+          <rect x="20" y="40" width="280" height="140" rx="12" fill="#ecfdf5" stroke="#0f766e" />
+          <text x="160" y="70" text-anchor="middle" font-weight="700" fill="#115e59">Frontend lab</text>
+          <text x="160" y="96" text-anchor="middle" font-size="13" fill="#134e4a">vite build + preview :4200</text>
+          <text x="160" y="118" text-anchor="middle" font-size="13" fill="#134e4a">Playwright Chromium</text>
+          <text x="160" y="140" text-anchor="middle" font-size="13" fill="#134e4a">LCP / CLS / TBT + bundle</text>
+          <text x="160" y="162" text-anchor="middle" font-size="12" fill="#0f766e">API fulfilled from fixtures</text>
+          <rect x="350" y="40" width="280" height="140" rx="12" fill="#eff6ff" stroke="#1d4ed8" />
+          <text x="490" y="70" text-anchor="middle" font-weight="700" fill="#1e3a8a">System protocol</text>
+          <text x="490" y="96" text-anchor="middle" font-size="13" fill="#1e3a8a">k6 browse-feed.js</text>
+          <text x="490" y="118" text-anchor="middle" font-size="13" fill="#1e3a8a">smoke 1 VU · 30s</text>
+          <text x="490" y="140" text-anchor="middle" font-size="13" fill="#1e3a8a">load ramp 0→10 VU · 2 min</text>
+          <text x="490" y="162" text-anchor="middle" font-size="12" fill="#1d4ed8">HTTP virtual users</text>
+          <rect x="680" y="40" width="280" height="140" rx="12" fill="#fff7ed" stroke="#c2410c" />
+          <text x="820" y="70" text-anchor="middle" font-weight="700" fill="#9a3412">Isolation</text>
+          <text x="820" y="96" text-anchor="middle" font-size="13" fill="#9a3412">Bun mock :8081</text>
+          <text x="820" y="118" text-anchor="middle" font-size="13" fill="#9a3412">
+            30 articles, body omitted on list
+          </text>
+          <text x="820" y="140" text-anchor="middle" font-size="13" fill="#9a3412">No public API traffic</text>
+          <text x="820" y="162" text-anchor="middle" font-size="12" fill="#c2410c">ethical / laptop-safe</text>
+          <path d="M300 110 H350" stroke="#5d6b66" stroke-width="2" marker-end="url(#arrow)" />
+          <path d="M630 110 H680" stroke="#5d6b66" stroke-width="2" />
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8" fill="#5d6b66" />
+            </marker>
+          </defs>
+        </svg>
+        <div class="grid-2" style="margin-top: 1rem">
+          <div>
+            <h3>Environment</h3>
+            <table>
+              <tr>
+                <th>App</th>
+                <td>Conduit (React RealWorld example)</td>
+              </tr>
+              <tr>
+                <th>CPU</th>
+                <td>Intel Core Ultra 7 155H (22 threads)</td>
+              </tr>
+              <tr>
+                <th>Memory</th>
+                <td>30 GiB</td>
+              </tr>
+              <tr>
+                <th>Chrome</th>
+                <td>151.0.7922.137</td>
+              </tr>
+              <tr>
+                <th>k6</th>
+                <td>grafana/k6 (Docker, host network)</td>
+              </tr>
+              <tr>
+                <th>Frontend</th>
+                <td>http://localhost:4200 (vite preview, production build)</td>
+              </tr>
+              <tr>
+                <th>API</th>
+                <td>http://localhost:8081/api (Bun RealWorld mock)</td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h3>Anonymous browse-feed mix</h3>
+            <p class="muted">
+              Every iteration: tags + global feed. ~20% open the first article (markdown + comments in parallel). Think
+              time 1–2s. ~20% paginate <code>offset=10</code>.
+            </p>
+            <div class="donut-wrap">
+              <svg viewBox="0 0 120 120" class="donut">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="42"
+                  fill="none"
+                  stroke="#0f766e"
+                  stroke-width="16"
+                  stroke-dasharray="225.76 38.13"
+                  stroke-dashoffset="0.00"
+                  transform="rotate(-90 60 60)"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="42"
+                  fill="none"
+                  stroke="#c2410c"
+                  stroke-width="16"
+                  stroke-dasharray="38.13 225.76"
+                  stroke-dashoffset="-225.76"
+                  transform="rotate(-90 60 60)"
+                />
+              </svg>
+              <ul class="legend">
+                <li>
+                  <span class="swatch" style="background: #0f766e"></span>List (tags + feed + page 2)
+                  <strong>85.6%</strong> (1350)
+                </li>
+                <li>
+                  <span class="swatch" style="background: #c2410c"></span>Article + comments
+                  <strong>14.4%</strong> (228)
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>3. Frontend lab — Web Vitals &amp; bundle</h2>
+        <p class="muted">
+          Production build, unthrottled Chromium, API responses fulfilled from the same fixtures as the mock (LCP is
+          frontend-owned). CDN Ionicons and Google Fonts were not blocked. Medians of 3 cold navigations per page.
+          Playwright lab: 4 passed, 0 failed.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>LCP</th>
+              <th>Budget 2.5s</th>
+              <th>CLS</th>
+              <th>Budget 0.1</th>
+              <th>TBT</th>
+              <th>Budget 300ms</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>home</strong></td>
+              <td>300 ms</td>
+              <td><span class="pill pass">PASS</span> 88% under budget</td>
+              <td>0.072</td>
+              <td><span class="pill pass">PASS</span></td>
+              <td>0 ms</td>
+              <td><span class="pill pass">PASS</span> 100% under budget</td>
+            </tr>
+            <tr>
+              <td><strong>login</strong></td>
+              <td>276 ms</td>
+              <td><span class="pill pass">PASS</span> 89% under budget</td>
+              <td>0.000</td>
+              <td><span class="pill pass">PASS</span></td>
+              <td>0 ms</td>
+              <td><span class="pill pass">PASS</span> 100% under budget</td>
+            </tr>
+            <tr>
+              <td><strong>article</strong></td>
+              <td>328 ms</td>
+              <td><span class="pill pass">PASS</span> 87% under budget</td>
+              <td>0.035</td>
+              <td><span class="pill pass">PASS</span></td>
+              <td>0 ms</td>
+              <td><span class="pill pass">PASS</span> 100% under budget</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>LCP vs Google “good” budget</h3>
+        <div class="bars">
+          <div class="bar-row">
+            <div class="bar-label">home</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 12%; background: #0f766e"></div></div>
+            <div class="bar-value">300 ms / 2.50 s</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">login</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 11%; background: #0f766e"></div></div>
+            <div class="bar-value">276 ms / 2.50 s</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">article</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 13.1%; background: #0f766e"></div></div>
+            <div class="bar-value">328 ms / 2.50 s</div>
+          </div>
+        </div>
+        <h3>TBT vs 300 ms lab budget</h3>
+        <div class="bars">
+          <div class="bar-row">
+            <div class="bar-label">home</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 0%; background: #1d4ed8"></div></div>
+            <div class="bar-value">0 ms / 300 ms</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">login</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 0%; background: #1d4ed8"></div></div>
+            <div class="bar-value">0 ms / 300 ms</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">article</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 0%; background: #1d4ed8"></div></div>
+            <div class="bar-value">0 ms / 300 ms</div>
+          </div>
+        </div>
+        <h3>Main JavaScript chunk</h3>
+        <div class="bars">
+          <div class="bar-row">
+            <div class="bar-label">index-BgRXxivE.js</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 90.4%; background: #c2410c"></div></div>
+            <div class="bar-value">452.2 kB / 500.0 kB</div>
+          </div>
+        </div>
+        <p>
+          Uncompressed 452.2 kB / gzip 145.9 kB. Budget 500.0 kB locked from the first local production build (~452 kB).
+        </p>
+        <h3>Samples</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Run</th>
+              <th>LCP</th>
+              <th>CLS</th>
+              <th>TBT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>home</td>
+              <td>1</td>
+              <td>324 ms</td>
+              <td>0.072</td>
+              <td>0 ms</td>
+            </tr>
+            <tr>
+              <td>home</td>
+              <td>2</td>
+              <td>244 ms</td>
+              <td>0.072</td>
+              <td>0 ms</td>
+            </tr>
+            <tr>
+              <td>home</td>
+              <td>3</td>
+              <td>300 ms</td>
+              <td>0.072</td>
+              <td>0 ms</td>
+            </tr>
+            <tr>
+              <td>login</td>
+              <td>1</td>
+              <td>276 ms</td>
+              <td>0.000</td>
+              <td>0 ms</td>
+            </tr>
+            <tr>
+              <td>login</td>
+              <td>2</td>
+              <td>288 ms</td>
+              <td>0.000</td>
+              <td>0 ms</td>
+            </tr>
+            <tr>
+              <td>login</td>
+              <td>3</td>
+              <td>260 ms</td>
+              <td>0.000</td>
+              <td>0 ms</td>
+            </tr>
+            <tr>
+              <td>article</td>
+              <td>1</td>
+              <td>412 ms</td>
+              <td>0.035</td>
+              <td>0 ms</td>
+            </tr>
+            <tr>
+              <td>article</td>
+              <td>2</td>
+              <td>328 ms</td>
+              <td>0.032</td>
+              <td>0 ms</td>
+            </tr>
+            <tr>
+              <td>article</td>
+              <td>3</td>
+              <td>308 ms</td>
+              <td>0.035</td>
+              <td>0 ms</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>4. System protocol — k6 browse-feed</h2>
+        <p class="muted">
+          Thresholds (local mock, tight): <code>http_req_failed &lt; 1%</code>,
+          <code>http_req_duration p(95) &lt; 200ms</code>, checks &gt; 99%. A self-hosted RealWorld backend would
+          typically use looser SLOs (e.g. p95 &lt; 500ms).
+        </p>
+        <div class="grid-2">
+          <div>
+            <h3>Smoke — 1 VU, 30s</h3>
+            <table>
+              <tr>
+                <th>Result</th>
+                <td><span class="pill pass">PASS</span></td>
+              </tr>
+              <tr>
+                <th>Iterations</th>
+                <td>21</td>
+              </tr>
+              <tr>
+                <th>HTTP requests</th>
+                <td>57 (1.88/s)</td>
+              </tr>
+              <tr>
+                <th>Failed requests</th>
+                <td>0.00%</td>
+              </tr>
+              <tr>
+                <th>Checks</th>
+                <td>114/114 (100%)</td>
+              </tr>
+              <tr>
+                <th>p50 / p95 / max</th>
+                <td>289 µs / 510 µs / 833 µs</td>
+              </tr>
+              <tr>
+                <th>Iteration time</th>
+                <td>avg 1.44 s (think time 1–2s)</td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h3>Load — ramp 0→10 VUs, hold 1m, ramp down</h3>
+            <table>
+              <tr>
+                <th>Result</th>
+                <td><span class="pill pass">PASS</span></td>
+              </tr>
+              <tr>
+                <th>Iterations</th>
+                <td>608</td>
+              </tr>
+              <tr>
+                <th>HTTP requests</th>
+                <td>1578 (13.03/s)</td>
+              </tr>
+              <tr>
+                <th>Failed requests</th>
+                <td>0.00%</td>
+              </tr>
+              <tr>
+                <th>Checks</th>
+                <td>3156/3156</td>
+              </tr>
+              <tr>
+                <th>p50 / p95 / max</th>
+                <td>203 µs / 418 µs / 773 µs</td>
+              </tr>
+              <tr>
+                <th>Peak VUs</th>
+                <td>10</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <h3>Virtual users over time (load)</h3>
+
+        <svg viewBox="0 0 980 180" class="chart" role="img">
+          <line x1="40" y1="12" x2="40" y2="152" stroke="#d7ddd6" />
+          <line x1="40" y1="152" x2="972" y2="152" stroke="#d7ddd6" />
+          <text x="8" y="18" class="axis">10</text>
+          <text x="8" y="156" class="axis">0</text>
+          <text x="944" y="170" class="axis">120s</text>
+          <polyline
+            fill="none"
+            stroke="#1d4ed8"
+            stroke-width="2.5"
+            points="40.0,138.8 55.5,138.8 71.1,125.6 86.6,112.4 102.1,112.4 117.7,99.2 133.2,99.2 148.7,86.0 164.3,72.8 179.8,72.8 195.3,59.6 210.9,59.6 226.4,46.4 241.9,33.2 257.5,33.2 273.0,20.0 288.5,20.0 304.1,20.0 319.6,20.0 335.1,20.0 350.7,20.0 366.2,20.0 381.7,20.0 397.3,20.0 412.8,20.0 428.3,20.0 443.9,20.0 459.4,20.0 474.9,20.0 490.5,20.0 506.0,20.0 521.5,20.0 537.1,20.0 552.6,20.0 568.1,20.0 583.7,20.0 599.2,20.0 614.7,20.0 630.3,20.0 645.8,20.0 661.3,20.0 676.9,20.0 692.4,20.0 707.9,20.0 723.5,20.0 739.0,20.0 754.5,20.0 770.1,33.2 785.6,33.2 801.1,46.4 816.7,59.6 832.2,59.6 847.7,72.8 863.3,86.0 878.8,99.2 894.3,99.2 909.9,112.4 925.4,125.6 940.9,125.6 956.5,138.8 972.0,138.8"
+          />
+          <circle cx="972.0" cy="138.8" r="3.5" fill="#1d4ed8" />
+        </svg>
+        <p class="muted">Designed stages: 30s ramp to 10 VUs, 1 minute hold, 30s ramp to 0.</p>
+        <h3>HTTP request duration over time (load, µs)</h3>
+
+        <svg viewBox="0 0 980 180" class="chart" role="img">
+          <line x1="40" y1="12" x2="40" y2="152" stroke="#d7ddd6" />
+          <line x1="40" y1="152" x2="972" y2="152" stroke="#d7ddd6" />
+          <text x="8" y="18" class="axis">615</text>
+          <text x="8" y="156" class="axis">0</text>
+          <text x="944" y="170" class="axis">116s</text>
+          <polyline
+            fill="none"
+            stroke="#0f766e"
+            stroke-width="2.5"
+            points="40.0,22.6 77.2,104.2 97.0,91.4 124.3,77.1 138.9,64.9 160.7,85.0 168.7,103.9 175.5,124.4 186.3,125.2 199.5,99.4 207.1,62.4 215.7,92.6 226.8,34.6 230.1,132.7 239.6,115.2 246.2,131.1 255.6,89.1 262.2,89.6 265.2,105.1 276.5,123.6 280.9,92.9 289.5,117.5 294.4,113.0 303.6,94.5 309.6,71.7 315.5,108.1 320.9,78.3 328.4,68.0 333.4,103.3 341.6,134.2 345.6,73.5 351.1,131.9 357.0,127.4 364.6,92.1 370.7,112.1 376.6,74.7 382.3,86.8 392.1,120.9 397.7,117.4 404.9,108.2 412.5,124.0 418.3,84.1 426.3,82.7 432.7,92.1 439.9,51.5 446.4,112.7 452.4,124.1 458.2,64.1 467.8,95.6 474.6,110.3 479.2,123.1 485.1,102.2 490.8,111.4 498.2,85.7 500.5,125.9 513.4,89.7 517.5,106.2 524.4,121.3 529.0,55.9 534.4,107.8 542.4,125.2 551.6,97.4 556.2,122.7 562.0,66.3 569.3,95.1 577.3,92.3 584.9,95.2 593.0,84.3 596.8,109.8 606.4,122.2 613.4,123.4 621.0,112.9 624.0,130.9 632.6,121.6 638.9,128.7 646.1,136.8 653.5,53.2 656.8,130.1 665.1,115.2 667.8,114.6 676.8,85.2 680.9,120.7 689.5,116.9 693.6,123.6 701.1,67.9 709.4,130.9 717.9,74.2 721.9,139.7 733.4,124.8 741.3,126.4 747.3,103.5 751.7,103.8 759.2,107.0 767.0,90.4 771.6,136.2 781.1,76.7 784.9,118.4 794.5,126.6 804.4,90.7 809.2,135.7 819.2,94.8 826.3,116.9 834.7,120.4 843.4,111.5 850.0,125.2 864.1,91.3 878.8,102.0 888.9,105.9 898.2,107.4 911.7,72.8 925.0,89.2 944.0,79.2 972.0,20.0"
+          />
+          <circle cx="972.0" cy="20.0" r="3.5" fill="#0f766e" />
+        </svg>
+        <h3>Latency smoke vs load</h3>
+        <div class="bars">
+          <div class="bar-row">
+            <div class="bar-label">smoke p95</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 0.3%; background: #0f766e"></div></div>
+            <div class="bar-value">510 µs / 200 ms</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">load p95</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 0.2%; background: #0f766e"></div></div>
+            <div class="bar-value">418 µs / 200 ms</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">load max</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 0.4%; background: #0f766e"></div></div>
+            <div class="bar-value">773 µs / 200 ms</div>
+          </div>
+        </div>
+        <p>
+          p95 is ~100% under the 200 ms mock threshold because the server is in-process JSON over loopback. This chart
+          is a threshold-compliance view, not a backend scaling curve.
+        </p>
+      </section>
+
+      <section>
+        <h2>5. Findings</h2>
+        <ol class="findings">
+          <li>
+            <strong>Frontend is comfortably inside “good” Web Vitals on this laptop.</strong> Median LCP is 300 ms
+            (home), 276 ms (login), 328 ms (article) against a 2.5 s budget. CLS is 0.072 / 0.000 / 0.035 (budget 0.1).
+            TBT is 0 ms / 0 ms / 0 ms against 300 ms.
+          </li>
+          <li>
+            <strong>Markdown is not a lab bottleneck here.</strong> The article page (marked + DOMPurify) did not show a
+            TBT regression versus home/login on unthrottled Chrome. That can change under CPU throttling or a much
+            larger body.
+          </li>
+          <li>
+            <strong>The main JS chunk is 452.2 kB uncompressed (145.9 kB gzip), 10% under budget.</strong> There is
+            little splitting today (single <code>index-*.js</code>). A modest dependency addition could still approach
+            the 500 kB lock.
+          </li>
+          <li>
+            <strong>k6 smoke and load both passed with 0 failed HTTP requests and 100% checks.</strong> Smoke: 57
+            requests, p95 510 µs. Load: 1578 requests, p95 418 µs, peak 10 VUs.
+          </li>
+          <li>
+            <strong>Observed mix matches the intended read-heavy session.</strong> Load-profile list vs article+comments
+            is 85.6% vs 14.4% (design: ~80 / ~20). Pagination fired on 134 iterations’ page-2 checks.
+          </li>
+          <li>
+            <strong>These protocol numbers do not describe RealWorld API capacity.</strong> The mock has no DB, auth, or
+            network hop. 10 VUs cannot saturate it. Do not treat p95 &lt; 1 ms as an SLO for a self-hosted or public
+            backend.
+          </li>
+          <li>
+            <strong>CDN fonts/icons remain on the critical path of the real production head.</strong> Lab tests
+            intentionally left them unblocked, so LCP/CLS include that cost. They are still an easy future lever if
+            field LCP is worse than this lab.
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>6. Conclusions</h2>
+        <ol class="conclusions">
+          <li>
+            <strong>Ship confidence for the current SPA:</strong> production-build lab vitals and bundle budget pass on
+            this machine. No frontend performance defect showed up in this run.
+          </li>
+          <li>
+            <strong>Keep the mock as the default k6 target.</strong> It is the ethical, deterministic way to demo
+            smoke/load. Point k6 at a self-hosted backend only with looser thresholds (p95 &lt; 500 ms is the comment in
+            the script) and never at <code>api.realworld.show</code>.
+          </li>
+          <li>
+            <strong>If the next question is “can the API take traffic?”, this report cannot answer it.</strong> Re-run
+            <code>PROFILE=load</code> (then stress) against a backend you own, with <code>MOCK_LATENCY_MS</code> or real
+            I/O, before talking capacity.
+          </li>
+          <li>
+            <strong>Use smoke on every demo/PR-shaped loop; keep load local.</strong> Smoke is 30s and cheap. The 10-VU
+            load run is the short capacity demo; soak/spike/stress stay out of the default scripts.
+          </li>
+          <li>
+            <strong>Watch the 500 kB JS budget.</strong> At 452.2 kB there is ~47.8 kB of slack. Code-split or drop
+            unused marked/DOMPurify work before adding a large client library.
+          </li>
+        </ol>
+      </section>
+    </main>
+    <footer>
+      Generated 2026-08-25T18:41:22.588Z from <code>perf/reports/data/</code> (k6 summary + point samples, Playwright
+      JSON, lab medians). Raw point logs are local artifacts and are not required to read this page.
+    </footer>
+  </body>
+</html>

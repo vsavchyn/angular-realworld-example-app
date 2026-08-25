@@ -22,6 +22,10 @@ describe('apiFetch', () => {
     vi.clearAllMocks();
   });
 
+  it('defaults to the public RealWorld API', () => {
+    expect(API_BASE).toBe('https://api.realworld.show/api');
+  });
+
   it('prefixes the RealWorld API base URL', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ tags: ['react'] }));
     await apiFetch('/tags');

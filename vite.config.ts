@@ -7,7 +7,7 @@ const securityHeaders = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Content-Security-Policy':
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://code.ionicframework.com https://fonts.googleapis.com; font-src 'self' https://code.ionicframework.com https://fonts.gstatic.com; img-src 'self' https:; connect-src 'self' https://api.realworld.show ws: wss:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://code.ionicframework.com https://fonts.googleapis.com; font-src 'self' https://code.ionicframework.com https://fonts.gstatic.com; img-src 'self' https:; connect-src 'self' https://api.realworld.show http://localhost:8081 ws: wss:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
 };
 
 export default defineConfig({

@@ -19,6 +19,11 @@
     "test:e2e:report": "playwright show-report",
     "format": "prettier --write \"**/*.{ts,tsx,html,css,json,md}\" \"!realworld/**\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,html,css,json,md}\" \"!realworld/**\"",
+    "perf:mock": "bun run perf/mock-api/server.ts",
+    "perf:frontend": "playwright test -c playwright.perf.config.ts",
+    "perf:system": "bun run perf/run-k6.ts smoke",
+    "perf:system:load": "bun run perf/run-k6.ts load",
+    "perf:demo": "bun run perf/run-demo.ts",
     "prepare": "husky install"
   },
   "engines": {
