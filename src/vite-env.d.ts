@@ -10,6 +10,10 @@ export interface ConduitDebug {
 }
 
 declare global {
+  interface ImportMetaEnv {
+    readonly VITE_API_BASE?: string;
+  }
+
   interface Window {
     __conduit_debug__?: ConduitDebug;
   }

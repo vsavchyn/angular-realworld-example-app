@@ -73,6 +73,10 @@ The example application is a social blogging site (i.e. a Medium.com clone) call
 - react-hook-form
 - Vitest + Playwright (shared RealWorld e2e suite)
 
+## Performance tests
+
+Lab Web Vitals, a JS bundle budget, and a k6 browse-feed scenario against a local mock — see [perf/README.md](perf/README.md). Do not load-test the public RealWorld API.
+
 ## License
 
 - **Project code**: [MIT License](LICENSE)
