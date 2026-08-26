@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Conduit Angular vs React performance</title>
+    <style>
+      :root {
+        --bg: #f4f6f4;
+        --card: #ffffff;
+        --ink: #1b2420;
+        --muted: #5d6b66;
+        --line: #d9e0dc;
+        --pass: #1f7a4d;
+        --pass-bg: #e5f6ec;
+        --fail: #b42318;
+        --fail-bg: #fde8e6;
+        --ang: #c2410c;
+        --rea: #1d4ed8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--bg);
+        font:
+          16px/1.5 'Source Sans 3',
+          'Segoe UI',
+          sans-serif;
+      }
+      header {
+        background: linear-gradient(120deg, #11332e 0%, #0f766e 55%, #1d4ed8 140%);
+        color: #fff;
+        padding: 2.4rem 1.5rem 2rem;
+      }
+      header .wrap,
+      main,
+      footer {
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.4rem;
+        font-size: 2rem;
+        letter-spacing: -0.03em;
+      }
+      .sub {
+        opacity: 0.9;
+        max-width: 46rem;
+      }
+      .status-row {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        margin-top: 1.1rem;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 999px;
+        padding: 0.15rem 0.65rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .pill.pass {
+        background: var(--pass-bg);
+        color: var(--pass);
+      }
+      .pill.fail {
+        background: var(--fail-bg);
+        color: var(--fail);
+      }
+      main {
+        padding: 1.5rem;
+        display: grid;
+        gap: 1.1rem;
+      }
+      section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1.2rem 1.3rem 1.3rem;
+      }
+      h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1.25rem;
+        letter-spacing: -0.02em;
+      }
+      h3 {
+        margin: 1rem 0 0.4rem;
+        font-size: 1.02rem;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+      }
+      @media (max-width: 800px) {
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .stat {
+        background: #f7faf8;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.8rem 0.9rem;
+      }
+      .stat b {
+        display: block;
+        font-size: 1.25rem;
+        letter-spacing: -0.03em;
+      }
+      .stat span {
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.45rem 0.4rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      td.better {
+        color: var(--pass);
+      }
+      td.worse {
+        color: var(--fail);
+      }
+      .bars {
+        display: grid;
+        gap: 1rem;
+      }
+      .group {
+        display: grid;
+        gap: 0.35rem;
+      }
+      .bar-label {
+        font-weight: 650;
+      }
+      .pair {
+        display: grid;
+        gap: 0.25rem;
+      }
+      .bar-row {
+        display: grid;
+        grid-template-columns: 5.5rem 1fr 8rem;
+        gap: 0.55rem;
+        align-items: center;
+        font-size: 0.85rem;
+      }
+      .bar-track {
+        height: 10px;
+        background: #e7eee9;
+        border-radius: 99px;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        border-radius: 99px;
+      }
+      .bar-fill.ang {
+        background: var(--ang);
+      }
+      .bar-fill.rea {
+        background: var(--rea);
+      }
+      .bar-value {
+        color: var(--muted);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .who {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .callout {
+        background: #fff7e6;
+        border-left: 4px solid #9a6700;
+        padding: 0.7rem 0.9rem;
+        border-radius: 0 8px 8px 0;
+        color: #5c4a12;
+      }
+      footer {
+        padding: 1rem 1.5rem 2.5rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      ol > li {
+        margin: 0.45rem 0;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.86em;
+        background: #eef2ef;
+        padding: 0.05rem 0.3rem;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <h1>Conduit Angular vs React</h1>
+        <p class="sub">
+          Same machine, Playwright Chromium, production static preview, fixture API. Medians of 5 cold navigations per
+          page. k6 against the local mock is a shared protocol baseline, not a migration delta.
+        </p>
+        <div class="status-row">
+          <span class="pill fail">FAIL</span> Angular Web Vitals <span class="pill pass">PASS</span> React Web Vitals
+          <span class="pill pass">PASS</span> Angular JS budget <span class="pill pass">PASS</span> React JS budget
+          <span class="pill pass">PASS</span> k6 smoke
+        </div>
+      </div>
+    </header>
+    <main>
+      <section>
+        <h2>1. Executive summary</h2>
+        <div class="grid-3">
+          <div class="stat"><span>Home LCP (React − Angular)</span><b>8 ms (+4%)</b></div>
+          <div class="stat"><span>Home TBT (React − Angular)</span><b>0 ms (0%)</b></div>
+          <div class="stat"><span>Total JS (React − Angular)</span><b>35.2 kB (+8%)</b></div>
+        </div>
+        <p>
+          Negative deltas mean React is faster or smaller. Positive deltas mean React is slower or heavier. Budgets are
+          Google “good” lab numbers plus each app’s largest-chunk lock (Angular 1.00 MB, React 500.0 kB).
+        </p>
+      </section>
+
+      <section>
+        <h2>2. How the run was shaped</h2>
+        <p class="callout">
+          Frontend metrics are owned by the SPA. Playwright fulfills <code>/api/</code> from the same browse-feed
+          fixtures on both trees. CDN Ionicons and Google Fonts stay unblocked. Angular uses protocol-relative CDN URLs.
+          React uses <code>https</code> plus CSP. That can move LCP a little even when the app code is the story.
+        </p>
+        <table>
+          <tr>
+            <th>Host</th>
+            <td>Intel(R) Core(TM) Ultra 7 155H (22 threads), 30.8 GiB, linux 7.0.0-28-generic</td>
+          </tr>
+          <tr>
+            <th>Tooling</th>
+            <td>bun 1.3.14, chromium (bundled), v24.3.0</td>
+          </tr>
+          <tr>
+            <th>Angular collected</th>
+            <td>2026-08-26T20:29:20.821Z</td>
+          </tr>
+          <tr>
+            <th>React collected</th>
+            <td>2026-08-26T20:30:51.687Z</td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>3. Web Vitals</h2>
+        <h3>LCP</h3>
+        <div class="bars">
+          <div class="group">
+            <div class="bar-label">home</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 73.2%"></div></div>
+                <span class="bar-value">208 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 76.1%"></div></div>
+                <span class="bar-value">216 ms</span>
+              </div>
+            </div>
+          </div>
+          <div class="group">
+            <div class="bar-label">login</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 64.8%"></div></div>
+                <span class="bar-value">184 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 74.6%"></div></div>
+                <span class="bar-value">212 ms</span>
+              </div>
+            </div>
+          </div>
+          <div class="group">
+            <div class="bar-label">article</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 76.1%"></div></div>
+                <span class="bar-value">216 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 100%"></div></div>
+                <span class="bar-value">284 ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3>TBT</h3>
+        <div class="bars">
+          <div class="group">
+            <div class="bar-label">home</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 0%"></div></div>
+                <span class="bar-value">0 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 0%"></div></div>
+                <span class="bar-value">0 ms</span>
+              </div>
+            </div>
+          </div>
+          <div class="group">
+            <div class="bar-label">login</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 0%"></div></div>
+                <span class="bar-value">0 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 0%"></div></div>
+                <span class="bar-value">0 ms</span>
+              </div>
+            </div>
+          </div>
+          <div class="group">
+            <div class="bar-label">article</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 0%"></div></div>
+                <span class="bar-value">0 ms</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 0%"></div></div>
+                <span class="bar-value">0 ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3>CLS</h3>
+        <div class="bars">
+          <div class="group">
+            <div class="bar-label">home</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 13.1%"></div></div>
+                <span class="bar-value">0.131</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 7.2%"></div></div>
+                <span class="bar-value">0.072</span>
+              </div>
+            </div>
+          </div>
+          <div class="group">
+            <div class="bar-label">login</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 0.1%"></div></div>
+                <span class="bar-value">0.001</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 0%"></div></div>
+                <span class="bar-value">0.000</span>
+              </div>
+            </div>
+          </div>
+          <div class="group">
+            <div class="bar-label">article</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 13.1%"></div></div>
+                <span class="bar-value">0.131</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 3.2%"></div></div>
+                <span class="bar-value">0.032</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3>LCP by page</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Angular</th>
+              <th>React</th>
+              <th>React − Angular</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>home</td>
+              <td>208 ms</td>
+              <td>216 ms</td>
+              <td class="worse">8 ms (+4%)</td>
+            </tr>
+            <tr>
+              <td>login</td>
+              <td>184 ms</td>
+              <td>212 ms</td>
+              <td class="worse">28 ms (+15%)</td>
+            </tr>
+            <tr>
+              <td>article</td>
+              <td>216 ms</td>
+              <td>284 ms</td>
+              <td class="worse">68 ms (+31%)</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>TBT by page</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Angular</th>
+              <th>React</th>
+              <th>React − Angular</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>home</td>
+              <td>0 ms</td>
+              <td>0 ms</td>
+              <td class="">0 ms (0%)</td>
+            </tr>
+            <tr>
+              <td>login</td>
+              <td>0 ms</td>
+              <td>0 ms</td>
+              <td class="">0 ms (0%)</td>
+            </tr>
+            <tr>
+              <td>article</td>
+              <td>0 ms</td>
+              <td>0 ms</td>
+              <td class="">0 ms (0%)</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>CLS by page</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Angular</th>
+              <th>React</th>
+              <th>React − Angular</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>home</td>
+              <td>0.131</td>
+              <td>0.072</td>
+              <td class="better">-0.059 (-45%)</td>
+            </tr>
+            <tr>
+              <td>login</td>
+              <td>0.001</td>
+              <td>0.000</td>
+              <td class="better">-0.001 (-87%)</td>
+            </tr>
+            <tr>
+              <td>article</td>
+              <td>0.131</td>
+              <td>0.032</td>
+              <td class="better">-0.099 (-75%)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>4. JavaScript payload</h2>
+        <div class="bars">
+          <div class="group">
+            <div class="bar-label">Total JS</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 92.2%"></div></div>
+                <span class="bar-value">417.0 kB</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 100%"></div></div>
+                <span class="bar-value">452.2 kB</span>
+              </div>
+            </div>
+          </div>
+          <div class="group">
+            <div class="bar-label">Total JS gzip</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 29.7%"></div></div>
+                <span class="bar-value">134.5 kB</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 32.3%"></div></div>
+                <span class="bar-value">145.9 kB</span>
+              </div>
+            </div>
+          </div>
+          <div class="group">
+            <div class="bar-label">Largest chunk</div>
+            <div class="pair">
+              <div class="bar-row">
+                <span class="who">Angular</span>
+                <div class="bar-track"><div class="bar-fill ang" style="width: 61.6%"></div></div>
+                <span class="bar-value">278.3 kB</span>
+              </div>
+              <div class="bar-row">
+                <span class="who">React</span>
+                <div class="bar-track"><div class="bar-fill rea" style="width: 100%"></div></div>
+                <span class="bar-value">452.2 kB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top: 1rem">
+          <div>
+            <h3>Angular files</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>File</th>
+                  <th>Raw</th>
+                  <th>Gzip</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>chunk-JC6VLHRF.js</code></td>
+                  <td>278.3 kB</td>
+                  <td>87.5 kB</td>
+                </tr>
+                <tr>
+                  <td><code>chunk-ZZXAKVAV.js</code></td>
+                  <td>41.4 kB</td>
+                  <td>12.6 kB</td>
+                </tr>
+                <tr>
+                  <td><code>chunk-UIIZ2WZK.js</code></td>
+                  <td>33.2 kB</td>
+                  <td>7.9 kB</td>
+                </tr>
+                <tr>
+                  <td><code>chunk-PNHU4AUH.js</code></td>
+                  <td>20.1 kB</td>
+                  <td>7.5 kB</td>
+                </tr>
+                <tr>
+                  <td><code>chunk-7AFJ5KRD.js</code></td>
+                  <td>9.7 kB</td>
+                  <td>3.3 kB</td>
+                </tr>
+                <tr>
+                  <td><code>main-MB6V3457.js</code></td>
+                  <td>6.0 kB</td>
+                  <td>2.2 kB</td>
+                </tr>
+                <tr>
+                  <td><code>chunk-SSSSFVNV.js</code></td>
+                  <td>4.5 kB</td>
+                  <td>1.9 kB</td>
+                </tr>
+                <tr>
+                  <td><code>chunk-2YFUBAGB.js</code></td>
+                  <td>3.6 kB</td>
+                  <td>1.6 kB</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h3>React files</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>File</th>
+                  <th>Raw</th>
+                  <th>Gzip</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>assets/index-BgRXxivE.js</code></td>
+                  <td>452.2 kB</td>
+                  <td>145.9 kB</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>5. Shared protocol baseline (k6 mock)</h2>
+        <p class="muted">
+          Anonymous browse-feed against <code>localhost:8081</code>. This is the same mock both apps would use. It is
+          not a frontend comparison.
+        </p>
+        <table>
+          <tr>
+            <th>Smoke</th>
+            <td><span class="pill pass">PASS</span> · 50 requests · p95 488 µs</td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>6. Findings</h2>
+        <ol>
+          <li>
+            Budget misses. Angular home CLS 0.131; Angular article CLS 0.131. LCP and TBT still sit under the Google
+            “good” lines on both apps.
+          </li>
+          <li>
+            Home LCP median is 208 ms on Angular and 216 ms on React (+4% after the migration). Login LCP winner is
+            Angular. Article LCP winner is Angular.
+          </li>
+          <li>
+            Home TBT median is 0 ms on Angular and 0 ms on React. Article TBT is a tie at 0 ms on this unthrottled
+            laptop.
+          </li>
+          <li>
+            Total JS is 417.0 kB (134.5 kB gzip) on Angular across 22 files, and 452.2 kB (145.9 kB gzip) on React
+            across 1 file (+8%, Angular smaller). Largest chunk is chunk-JC6VLHRF.js at 278.3 kB vs
+            assets/index-BgRXxivE.js at 452.2 kB (+62%).
+          </li>
+          <li>
+            Angular lazy-loads routes with loadComponent, so the lab downloads extra chunks after the first paint.
+            React’s production build is a single JS chunk. That is the main structural bundle difference, not a k6
+            result.
+          </li>
+          <li>
+            k6 smoke against the local Bun mock passed with p95 488 µs. That number is loopback JSON, not an Angular vs
+            React delta, and not api.realworld.show capacity.
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>7. Conclusions and what to improve</h2>
+        <ol>
+          <li>
+            React improved CLS on home (0.072 vs Angular 0.131) and article (0.032 vs 0.131). Angular still misses the
+            0.1 “good” line. Give the home banner logo and article hero images width/height (or a reserved min-height)
+            so Ionicons and webfonts cannot shove the feed. LCP and TBT are not the problem on this host.
+          </li>
+          <li>
+            React ships 35.2 kB more JS uncompressed than Angular. Split React routes (home, auth, article) the way
+            Angular already does with loadComponent, and keep the 500 kB largest-chunk lock.
+          </li>
+          <li>
+            Home LCP is within 8 ms across the two apps. CDN fonts and icons still sit on the critical path for both.
+            They are the first lever if field LCP is worse than this lab.
+          </li>
+          <li>
+            Do not use the k6 mock p95 as an API SLO. Re-run PROFILE=load against a backend you own before talking about
+            capacity. Never aim k6 at api.realworld.show.
+          </li>
+        </ol>
+      </section>
+    </main>
+    <footer>
+      Generated 2026-08-26T20:33:44.406Z from <code>perf/reports/data/{angular,react}/lab.json</code>. Raw k6 point logs
+      stay local and gitignored.
+    </footer>
+  </body>
+</html>

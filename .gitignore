@@ -44,6 +44,9 @@ yarn-error.log
 /playwright-report/
 /test-results/
 
+# Performance run artifacts (keep HTML reports)
+/perf/reports/data/
+
 # System Files
 .DS_Store
 Thumbs.db
