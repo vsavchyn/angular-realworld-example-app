@@ -1,4 +1,4 @@
-# Angular RealWorld Example App
+# React RealWorld Example App
 
 ## Commands
 
@@ -17,4 +17,8 @@ bun run format:check  # Check formatting without writing
 
 ## Debug Interface
 
-E2E tests use `window.__conduit_debug__` to access app state. See `e2e/helpers/debug.ts` for helpers and implementation examples for Angular/React/Vue.
+E2E tests use `window.__conduit_debug__` to access app state. See `realworld/specs/e2e/helpers/debug.ts` for the contract.
+
+## Angular → React
+
+Concept mapping (guards, interceptors, services, RxJS) lives in `ANGULAR_TO_REACT.md`.

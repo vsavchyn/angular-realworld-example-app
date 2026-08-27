@@ -1,0 +1,10 @@
+.nav-link,
+.tag-pill,
+.page-link {
+  cursor: pointer;
+}
+
+.navbar-nav .nav-link {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
